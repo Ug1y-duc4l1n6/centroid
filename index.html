@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Centroid Visualization</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 30px; }
+    canvas { border: 1px solid #333; margin-bottom: 10px; }
+    button { padding: 8px 16px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h2>Centroid Visualization</h2>
+  <canvas id="grid" width="500" height="500"></canvas><br>
+  <button onclick="reshuffle()">Reshuffle Points</button>
+  <script>
+    const canvas = document.getElementById('grid');
+    const ctx = canvas.getContext('2d');
+  const POINTS_COUNT = 10;
+    const PADDING = 40;
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    let points = [];
+    let centroid = null;
+
+    function randomPoint() {
+      return {
+        x: Math.floor(Math.random() * (WIDTH - 2 * PADDING)) + PADDING,
+        y: Math.floor(Math.random() * (HEIGHT - 2 * PADDING)) + PADDING
+      };
+    }
+
+    function generatePoints() {
+      points = [];
+      while (points.length < POINTS_COUNT) {
+        const pt = randomPoint();
+        // Avoid duplicate points
+        if (!points.some(p => p.x === pt.x && p.y === pt.y)) {
+          points.push(pt);
+        }
+      }
+    }
+
+    function calculateCentroid() {
+      let sumX = 0, sumY = 0;
+      for (const p of points) {
+        sumX += p.x;
+        sumY += p.y;
+      }
+      let cx = Math.round(sumX / points.length);
+      let cy = Math.round(sumY / points.length);
+      // Ensure centroid is not a random point
+      if (points.some(p => p.x === cx && p.y === cy)) {
+        // Offset centroid by 1 pixel if it matches a point
+        cx += 1;
+        cy += 1;
+      }
+      centroid = { x: cx, y: cy };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      // Draw grid
+      ctx.strokeStyle = '#eee';
+      for (let i = PADDING; i < WIDTH; i += 40) {
+        ctx.beginPath(); ctx.moveTo(i, PADDING); ctx.lineTo(i, HEIGHT - PADDING); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(PADDING, i); ctx.lineTo(WIDTH - PADDING, i); ctx.stroke();
+      }
+      // Draw points
+      for (const p of points) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 7, 0, 2 * Math.PI);
+        ctx.fillStyle = '#0074D9';
+        ctx.fill();
+        ctx.strokeStyle = '#003366';
+        ctx.stroke();
+        // Draw line to centroid
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(centroid.x, centroid.y);
+        ctx.strokeStyle = '#888';
+        ctx.stroke();
+      }
+      // Draw centroid
+      ctx.beginPath();
+      ctx.arc(centroid.x, centroid.y, 10, 0, 2 * Math.PI);
+      ctx.fillStyle = '#FF4136';
+      ctx.fill();
+      ctx.strokeStyle = '#B22222';
+      ctx.stroke();
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillStyle = '#B22222';
+      ctx.fillText('Centroid', centroid.x + 12, centroid.y - 12);
+    }
+
+    function reshuffle() {
+      generatePoints();
+      calculateCentroid();
+      draw();
+    }
+
+    // Initial draw
+    reshuffle();
+  </script>
+</body>
+</html>
